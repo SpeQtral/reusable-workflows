@@ -1,0 +1,40 @@
+name: 'Old artifact cleanup'
+
+on:
+  workflow_call:
+    inputs:
+      maxage:
+        description: "Delete artifacts that are older than this many days"
+        required: true
+        type: "number"
+
+jobs:
+  delete_artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - id: ghscript
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            maxage = ${{ inputs.maxage }}
+            artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            })
+            const deleted_artifacts = []
+            let total_size_bytes = 0
+            console.log(`Looking for artifacts more than ${maxage} day(s) old...`)
+            for (const artifact of artifacts) {
+              if (Date.now() > Date.parse(artifact.updated_at) + maxage * 24 * 60 * 60 * 1000) {
+                github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                })
+                deleted_artifacts.push(artifact)
+                total_size_bytes += artifact.size_in_bytes
+              }
+            }
+            console.log(`Deleting artifacts freed up ${total_size_bytes} bytes.`)
+            console.log("The following artifacts were deleted: ", deleted_artifacts)
