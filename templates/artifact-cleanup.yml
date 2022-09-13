@@ -1,0 +1,23 @@
+name: 'Nightly old artifact cleanup'
+
+on:
+  workflow_dispatch:
+    inputs:
+      maxage:
+        description: "Delete artifacts that are older than this many days"
+        required: true
+        default: 3
+  schedule:
+    - cron: '0 20 * * *' # every night at 4 am SGT = 2000hrs UTC
+
+jobs:
+  delete-artifacts-scheduled:
+    uses: SpeQtral/reusable-workflows/.github/workflows/artifact-cleanup.yml@v0.0.1
+    if: ${{ github.event_name == 'schedule' }}
+    with:
+      maxage: 3
+  delete-artifacts-manual:
+    uses: SpeQtral/reusable-workflows/.github/workflows/artifact-cleanup.yml@v0.0.1
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    with:
+      maxage: ${{ fromJSON(inputs.maxage) }} # fromJSON converts string input to number
