@@ -12,12 +12,12 @@ on:
 
 jobs:
   delete-artifacts-scheduled:
-    uses: SpeQtral/reusable-workflows/workflows/artifact-cleanup.yml@v0.0.1
+    uses: SpeQtral/reusable-workflows/workflows/artifact-cleanup.yml@main
     if: ${{ github.event_name == 'schedule' }}
     with:
       maxage: 3
   delete-artifacts-manual:
-    uses: SpeQtral/reusable-workflows/workflows/artifact-cleanup.yml@v0.0.1
+    uses: SpeQtral/reusable-workflows/workflows/artifact-cleanup.yml@main
     if: ${{ github.event_name == 'workflow_dispatch' }}
     with:
       maxage: ${{ fromJSON(inputs.maxage) }} # fromJSON converts string input to number
